@@ -1,0 +1,15 @@
+.env
+data/admin-auth.json
+backups/
+*.backup
+*.before-*
+
+node_modules/
+*.log
+*.bak*
+*.groq-backup
+
+*.community-backup
+*.design-backup
+
+data/

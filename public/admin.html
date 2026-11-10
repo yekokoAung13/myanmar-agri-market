@@ -1,0 +1,293 @@
+
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Myanmar Agri Market Admin</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#edf4ee;font-family:Arial,sans-serif;color:#20352a}
+header{background:#145c35;color:white;padding:20px}
+header h2{margin:0}
+main{max-width:800px;margin:auto;padding:15px}
+.card{background:white;border-radius:14px;padding:17px;margin-bottom:15px;box-shadow:0 2px 10px #0001}
+h3{color:#176b3a;margin-top:0}
+input,select,textarea{width:100%;padding:12px;margin:6px 0 12px;border:1px solid #ccd9ce;border-radius:8px;font-size:15px}
+button{padding:12px 17px;border:0;border-radius:8px;background:#176b3a;color:white;font-size:14px}
+button.danger{background:#c0392b}
+button.gray{background:#52645a}
+.hidden{display:none}
+.item{padding:12px 0;border-bottom:1px solid #eee}
+.item button{margin-top:7px}
+</style>
+</head>
+<body>
+<header>
+<h2>🌾 Myanmar Agri Market</h2>
+<p>Administrator Control Panel</p>
+</header>
+<main>
+<div id="loginBox" class="card">
+<h3>🔐 Admin Login</h3>
+<input id="password" type="password" placeholder="Admin Password">
+<button onclick="login()">Login ဝင်မည်</button>
+<p id="loginMsg"></p>
+</div>
+
+<div id="panel" class="hidden">
+<div class="card">
+<h3>📊 Dashboard</h3>
+<p id="summary">အချက်အလက် ရယူနေသည်...</p>
+<button class="gray" onclick="loadAdmin()">Refresh</button>
+<button class="danger" onclick="logout()">Logout</button>
+</div>
+
+<div class="card">
+<h3>🌾 သီးနှံအသစ်ထည့်ရန်</h3>
+<input id="cropName" placeholder="သီးနှံအမည်">
+<button id="cropSubmit" onclick="addCrop()">သီးနှံထည့်မည်</button> <button id="cropCancel" class="gray" style="display:none" onclick="cancelCropEdit()">မလုပ်တော့ပါ</button>
+<div id="cropList"></div>
+</div>
+
+<div class="card">
+<h3>💰 ဈေးနှုန်းထည့်ရန်</h3>
+<label>သီးနှံအမည်</label>
+<select id="priceCrop"></select>
+<input id="priceValue" type="number" placeholder="ဈေးနှုန်း (ကျပ်)">
+<input id="priceUnit" placeholder="ယူနစ် (ဥပမာ - တစ်တင်း၊ တစ်ပိဿာ)">
+<input id="priceMarket" placeholder="ဈေးကွက် / မြို့အမည်">
+<input id="priceQuality" placeholder="အရည်အသွေး (ရှိလျှင်)">
+<input id="priceSource" placeholder="အချက်အလက်ရင်းမြစ်">
+<button id="priceSubmit" onclick="addPrice()">ဈေးနှုန်းသိမ်းမည်</button> <button id="priceCancel" style="display:none" onclick="cancelPriceEdit()">မလုပ်တော့ပါ</button>
+<div id="priceList"></div>
+</div>
+
+<div class="card">
+<h3>📢 သတင်း / ကြေညာချက်</h3>
+<input id="newsTitle" placeholder="ခေါင်းစဉ်">
+<textarea id="newsContent" placeholder="အကြောင်းအရာ"></textarea>
+<button id="newsSubmit" onclick="addNews()">သတင်းထည့်မည်</button> <button id="newsCancel" class="gray" style="display:none" onclick="cancelNewsEdit()">မလုပ်တော့ပါ</button>
+<div id="newsList"></div>
+</div>
+
+<div class="card">
+<h3>📚 စိုက်ပျိုးရေးဗဟုသုတ</h3>
+<input id="knowTitle" placeholder="ခေါင်းစဉ်">
+<textarea id="knowContent" placeholder="ဗဟုသုတအကြောင်းအရာ"></textarea>
+<button id="knowSubmit" onclick="addKnowledge()">ထည့်သွင်းမည်</button> <button id="knowCancel" class="gray" style="display:none" onclick="cancelKnowledgeEdit()">မလုပ်တော့ပါ</button>
+<div id="knowledgeList"></div>
+</div>
+
+<div class="card">
+<h3>👨‍🌾 တောင်သူပို့စ်များ</h3>
+<div id="postList"></div>
+</div>
+</div>
+</main>
+
+<script>
+let token='';
+
+async function api(path,method='GET',body=null){
+let options={method,headers:{'Content-Type':'application/json','x-admin-token':token}};
+if(body)options.body=JSON.stringify(body);
+let response=await fetch('/api'+path,options);
+let data=await response.json();
+if(!response.ok)throw Error(data.message||'လုပ်ဆောင်မှု မအောင်မြင်ပါ');
+return data;
+}
+
+async function login(){
+try{
+let data=await api('/admin/login','POST',{password:document.getElementById('password').value});
+token=data.token;
+document.getElementById('loginBox').classList.add('hidden');
+document.getElementById('panel').classList.remove('hidden');
+loadAdmin();
+}catch(e){document.getElementById('loginMsg').textContent=e.message;}
+}
+
+async function loadAdmin(){
+try{
+let result=await api('/admin/data');
+let d=result.data||result;
+window.adminData=d;
+let crops=d.crops||[],prices=d.prices||[],news=d.news||[],knowledge=d.knowledge||[],posts=d.posts||[];
+document.getElementById('summary').textContent=`သီးနှံ ${crops.length} မျိုး | ဈေးနှုန်း ${prices.length} ခု | သတင်း ${news.length} ခု | ဗဟုသုတ ${knowledge.length} ခု | ပို့စ် ${posts.length} ခု`;
+
+document.getElementById('priceCrop').innerHTML=crops.map(c=>`<option value="${esc(c.name||c)}">${esc(c.name||c)}</option>`).join('');
+document.getElementById('cropList').innerHTML=crops.map(c=>`<div class="item">${esc(c.name||c)} <button onclick="editCrop('${c.id}')">ပြင်မည်</button> <button class="danger" onclick="del('crops','${c.id}')">ဖျက်မည်</button></div>`).join('');
+document.getElementById('priceList').innerHTML=prices.map(p=>`<div class="item">${esc(p.cropName||p.crop)} - ${esc(p.price)} ကျပ် (${esc(p.market||'')}) ${esc(p.unit||'')} <button onclick="editPrice('${p.id}')">ပြင်မည်</button> <button class="danger" onclick="del('prices','${p.id}')">ဖျက်မည်</button></div>`).join('');
+document.getElementById('newsList').innerHTML=news.map(n=>`<div class="item">${esc(n.title)} <button onclick="editNews('${n.id}')">ပြင်မည်</button> <button class="danger" onclick="del('news','${n.id}')">ဖျက်မည်</button></div>`).join('');
+document.getElementById('knowledgeList').innerHTML=knowledge.map(k=>`<div class="item">${esc(k.title)} <button onclick="editKnowledge('${k.id}')">ပြင်မည်</button> <button class="danger" onclick="del('knowledge','${k.id}')">ဖျက်မည်</button></div>`).join('');
+document.getElementById('postList').innerHTML=posts.map(p=>`<div class="item">${esc(p.content||p.text)} <button class="danger" onclick="del('posts','${p.id}')">ဖျက်မည်</button></div>`).join('')||'ပို့စ် မရှိသေးပါ။';
+}catch(e){alert(e.message);}
+}
+
+function esc(v){
+return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+let editingCropId = null;
+function editCrop(id){
+ const c=(window.adminData.crops||[]).find(x=>String(x.id)===String(id));
+ if(!c)return alert('သီးနှံ မတွေ့ပါ');
+ editingCropId=id;
+ document.getElementById('cropName').value=c.name||'';
+ document.getElementById('cropSubmit').textContent='ပြင်ဆင်ချက် သိမ်းမည်';
+ document.getElementById('cropCancel').style.display='inline-block';
+}
+function cancelCropEdit(){
+ editingCropId=null;
+ document.getElementById('cropName').value='';
+ document.getElementById('cropSubmit').textContent='သီးနှံထည့်မည်';
+ document.getElementById('cropCancel').style.display='none';
+}
+async function addCrop(){
+ let name=document.getElementById('cropName').value.trim();
+ if(!name)return alert('သီးနှံအမည်ထည့်ပါ');
+ try{
+  if(editingCropId!==null){
+   await api('/admin/crops/'+editingCropId,'PUT',{name});
+   alert('သီးနှံ ပြင်ဆင်ပြီးပါပြီ');
+   cancelCropEdit();
+  }else{
+   await api('/admin/crops','POST',{name});
+   document.getElementById('cropName').value='';
+  }
+  loadAdmin();
+ }catch(e){alert(e.message);}
+}
+
+let editingPriceId = null;
+
+function editPrice(id){
+ const p=(window.adminData.prices||[]).find(x=>String(x.id)===String(id));
+ if(!p)return alert('ဈေးနှုန်း မတွေ့ပါ');
+ editingPriceId=id;
+ document.getElementById('priceCrop').value=p.cropName||p.crop||'';
+ document.getElementById('priceValue').value=p.price||'';
+ document.getElementById('priceUnit').value=p.unit||'';
+ document.getElementById('priceMarket').value=p.market||'';
+ document.getElementById('priceQuality').value=p.grade||p.quality||'';
+ document.getElementById('priceSource').value=p.source||'';
+ document.getElementById('priceSubmit').textContent='ပြင်ဆင်ချက် သိမ်းမည်';
+ document.getElementById('priceCancel').style.display='inline-block';
+}
+
+function cancelPriceEdit(){
+ editingPriceId=null;
+ ['priceValue','priceUnit','priceMarket','priceQuality','priceSource'].forEach(id=>document.getElementById(id).value='');
+ document.getElementById('priceSubmit').textContent='ဈေးနှုန်းသိမ်းမည်';
+ document.getElementById('priceCancel').style.display='none';
+}
+
+async function addPrice(){
+ let body={
+  crop:document.getElementById('priceCrop').value,
+  price:document.getElementById('priceValue').value,
+  unit:document.getElementById('priceUnit').value,
+  market:document.getElementById('priceMarket').value,
+  quality:document.getElementById('priceQuality').value,
+  source:document.getElementById('priceSource').value
+ };
+ if(!body.crop||!body.price||!body.unit||!body.market)return alert('လိုအပ်သောအချက်အလက်များ ဖြည့်ပါ');
+ try{
+  if(editingPriceId!==null){
+   await api('/admin/prices/'+editingPriceId,'PUT',body);
+   alert('ဈေးနှုန်း ပြင်ဆင်ပြီးပါပြီ');
+   cancelPriceEdit();
+  }else{
+   await api('/admin/prices','POST',body);
+   alert('ဈေးနှုန်း သိမ်းပြီးပါပြီ');
+  }
+  loadAdmin();
+ }catch(e){alert(e.message);}
+}
+
+let editingNewsId = null;
+function editNews(id){
+ const n=(window.adminData.news||[]).find(x=>String(x.id)===String(id));
+ if(!n)return alert('သတင်း မတွေ့ပါ');
+ editingNewsId=id;
+ document.getElementById('newsTitle').value=n.title||'';
+ document.getElementById('newsContent').value=n.content||'';
+ document.getElementById('newsSubmit').textContent='ပြင်ဆင်ချက် သိမ်းမည်';
+ document.getElementById('newsCancel').style.display='inline-block';
+}
+function cancelNewsEdit(){
+ editingNewsId=null;
+ document.getElementById('newsTitle').value='';
+ document.getElementById('newsContent').value='';
+ document.getElementById('newsSubmit').textContent='သတင်းထည့်မည်';
+ document.getElementById('newsCancel').style.display='none';
+}
+async function addNews(){
+ let title=document.getElementById('newsTitle').value.trim();
+ let content=document.getElementById('newsContent').value.trim();
+ if(!title||!content)return alert('ခေါင်းစဉ်နှင့် အကြောင်းအရာ ဖြည့်ပါ');
+ try{
+  if(editingNewsId!==null){
+   await api('/admin/news/'+editingNewsId,'PUT',{title,content});
+   alert('သတင်း ပြင်ဆင်ပြီးပါပြီ');
+   cancelNewsEdit();
+  }else{
+   await api('/admin/news','POST',{title,content});
+   document.getElementById('newsTitle').value='';
+   document.getElementById('newsContent').value='';
+  }
+  loadAdmin();
+ }catch(e){alert(e.message);}
+}
+
+let editingKnowledgeId = null;
+function editKnowledge(id){
+ const k=(window.adminData.knowledge||[]).find(x=>String(x.id)===String(id));
+ if(!k)return alert('ဗဟုသုတ မတွေ့ပါ');
+ editingKnowledgeId=id;
+ document.getElementById('knowTitle').value=k.title||'';
+ document.getElementById('knowContent').value=k.content||'';
+ document.getElementById('knowSubmit').textContent='ပြင်ဆင်ချက် သိမ်းမည်';
+ document.getElementById('knowCancel').style.display='inline-block';
+}
+function cancelKnowledgeEdit(){
+ editingKnowledgeId=null;
+ document.getElementById('knowTitle').value='';
+ document.getElementById('knowContent').value='';
+ document.getElementById('knowSubmit').textContent='ထည့်သွင်းမည်';
+ document.getElementById('knowCancel').style.display='none';
+}
+async function addKnowledge(){
+ let title=document.getElementById('knowTitle').value.trim();
+ let content=document.getElementById('knowContent').value.trim();
+ if(!title||!content)return alert('အချက်အလက် ဖြည့်ပါ');
+ try{
+  if(editingKnowledgeId!==null){
+   await api('/admin/knowledge/'+editingKnowledgeId,'PUT',{title,content});
+   alert('ဗဟုသုတ ပြင်ဆင်ပြီးပါပြီ');
+   cancelKnowledgeEdit();
+  }else{
+   await api('/admin/knowledge','POST',{title,content});
+   document.getElementById('knowTitle').value='';
+   document.getElementById('knowContent').value='';
+  }
+  loadAdmin();
+ }catch(e){alert(e.message);}
+}
+
+async function del(type,id){
+if(!confirm('ဖျက်မှာ သေချာပါသလား'))return;
+try{await api('/admin/'+type+'/'+id,'DELETE');loadAdmin();}catch(e){alert(e.message);}
+}
+
+async function logout(){
+try{await api('/admin/logout','POST');}catch(e){}
+token='';
+document.getElementById('panel').classList.add('hidden');
+document.getElementById('loginBox').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
+

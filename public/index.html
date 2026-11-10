@@ -1,0 +1,598 @@
+
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Myanmar Agri Market</title>
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;600;700;800&display=swap');
+
+*{box-sizing:border-box}
+:root{
+  --green:#176b42;
+  --green2:#278653;
+  --light:#edf5ed;
+  --text:#26382e;
+  --muted:#78877d;
+}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:"Noto Sans Myanmar","Myanmar Text",system-ui,sans-serif;
+  background:#f4f7f2;
+  color:var(--text);
+  padding-bottom:85px;
+  line-height:1.75;
+  font-size:14px;
+}
+header{
+  background:linear-gradient(135deg,#124d34,#258451);
+  color:white;
+  padding:23px 18px;
+  box-shadow:0 4px 16px #174d3520;
+}
+header h2{margin:0;font-size:21px;font-weight:800}
+header p{margin:7px 0 0;font-size:12px;opacity:.9}
+main{padding:15px;max-width:760px;margin:auto}
+.page{display:none}
+.page.active{display:block;animation:pageIn .25s ease}
+@keyframes pageIn{
+  from{opacity:0;transform:translateY(5px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.card,.home-shortcut,.crop{
+  background:#fff;
+  border:1px solid #e7eee5;
+  border-radius:17px;
+  box-shadow:0 4px 15px #263d2c0a;
+}
+.card{padding:17px;margin-bottom:14px}
+h3{margin:0 0 13px;color:#205d3c;font-size:17px;font-weight:700}
+.welcome{
+  background:linear-gradient(135deg,#18583a,#31915c);
+  color:white;padding:22px 19px;border-radius:20px;
+  margin-bottom:16px;box-shadow:0 7px 20px #205b3d20;
+}
+.welcome h2{margin:0 0 8px;font-size:19px;font-weight:700}
+.welcome p{margin:0;font-size:13px;line-height:1.9;opacity:.95}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.crop{padding:15px;text-align:center}
+.crop .emoji{font-size:29px}
+.crop b{display:block;margin-top:7px;font-size:14px}
+.muted{color:var(--muted);font-size:12px}
+.home-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin-bottom:16px}
+.home-shortcut{padding:16px 10px;text-align:center}
+.home-shortcut span{font-size:27px;display:block;margin-bottom:5px}
+.home-shortcut b{font-size:13px;color:#205d3c}
+.home-heading{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.home-tag{background:#e7f3e9;color:#205d3c;padding:5px 10px;border-radius:30px;font-size:11px}
+.home-note{background:#edf5eb;padding:14px;border-radius:13px;color:#315d3d;font-size:13px;line-height:1.9}
+.price{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #edf1ed;padding:13px 0}
+.price:last-child{border:0}
+button,select,input,textarea{font-family:inherit}
+button{cursor:pointer;transition:filter .15s,transform .15s}
+button:active{transform:scale(.97)}
+.action{
+  background:linear-gradient(135deg,#176b42,#278653);
+  color:white;border:0;padding:12px 19px;border-radius:12px;
+  font:inherit;font-weight:700;box-shadow:0 3px 9px #176b4225;
+}
+input,select,textarea{
+  width:100%;max-width:100%;padding:12px!important;
+  border:1px solid #dce7dc!important;border-radius:12px!important;
+  margin:6px 0;background:#fff;color:var(--text);
+  font:inherit;outline:none;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:#329365!important;box-shadow:0 0 0 3px #32936518;
+}
+nav{
+  position:fixed;z-index:20;bottom:0;left:0;right:0;
+  background:#ffffffed;backdrop-filter:blur(12px);
+  display:flex;justify-content:space-around;gap:2px;
+  padding:9px 2px max(9px,env(safe-area-inset-bottom));
+  border-top:1px solid #e7eee7;
+  box-shadow:0 -4px 18px #263d2c0d;
+}
+nav button{
+  flex:1;min-width:0;border:0;background:none;
+  color:#78877d;font-size:11px;padding:4px 1px;
+  font-family:inherit;border-radius:10px;
+}
+nav button span{display:block;font-size:20px;margin-bottom:2px}
+nav button.active{color:#176b42;font-weight:800;background:#edf5ed}
+@media(min-width:600px){
+  main{padding:22px}
+  .grid,.home-shortcuts{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:360px){
+  header h2{font-size:18px}
+  main{padding:11px}
+  nav button{font-size:10px}
+  nav button span{font-size:18px}
+}
+
+
+/* Home information cards */
+.info-card{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  padding:19px 16px;
+  overflow:hidden;
+}
+.info-icon{
+  width:49px;
+  height:49px;
+  min-width:49px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:15px;
+  background:#e8f4e9;
+  font-size:25px;
+}
+.market-info-card{border-left:4px solid #278653}
+.knowledge-info-card{border-left:4px solid #d3a83b}
+.info-content{min-width:0;flex:1}
+.info-content h3{margin:0 0 7px;font-size:16px}
+.info-content p{margin:0;color:#66776b;font-size:13px;line-height:1.9}
+.info-meta{
+  margin-top:11px;
+  padding:8px 10px;
+  border-radius:10px;
+  background:#f0f6ef;
+  color:#287047;
+  font-size:11px;
+  line-height:1.8;
+}
+
+</style>
+</head>
+<body>
+<header>
+<h2>🌾 Myanmar Agri Market</h2>
+<p>မြန်မာ့စိုက်ပျိုးရေးဈေးကွက် သတင်းအချက်အလက်</p>
+</header>
+<main>
+<section id="home" class="page active">
+<div class="welcome">
+<h2>တောင်သူဦးကြီးများ မင်္ဂလာပါ 🌱</h2>
+<p>နေ့စဉ် သီးနှံဈေးနှုန်းများနှင့် စိုက်ပျိုးရေးသတင်းများကို တစ်နေရာတည်းတွင် ကြည့်ရှုနိုင်ပါပြီ။</p>
+</div>
+<div class="home-shortcuts">
+<div class="home-shortcut" onclick="showPage('prices',document.querySelector('nav button:nth-child(2)'))"><span>🫘</span><b>ပဲမျိုးစုံဈေး</b></div>
+<div class="home-shortcut" onclick="showPage('prices',document.querySelector('nav button:nth-child(2)'))"><span>🌶️</span><b>နှမ်း၊ ငရုတ်၊ ပြောင်း</b></div>
+<div class="home-shortcut" onclick="showPage('prices',document.querySelector('nav button:nth-child(2)'))"><span>🧅</span><b>ကြက်သွန်ဈေး</b></div>
+<div class="home-shortcut" onclick="showPage('prices',document.querySelector('nav button:nth-child(2)'))"><span>🏪</span><b>ဈေးကွက်အားလုံး</b></div>
+</div>
+<div class="card">
+<div class="home-heading"><h3>📊 ယနေ့ဈေးနှုန်းများ</h3><span class="home-tag">LIVE DATA</span></div>
+<div id="homePrices" class="muted">ဈေးနှုန်းအချက်အလက် မရှိသေးပါ။</div>
+</div>
+<div class="card info-card market-info-card">
+<div class="info-icon">📈</div>
+<div class="info-content">
+<h3>ဈေးကွက်အချက်အလက်</h3>
+<p>ဘုရင့်နောင်ဈေးကွက်၏ နေ့စဉ်ဈေးနှုန်းများကို MPBMSMA အရင်းအမြစ်မှ ရယူဖော်ပြထားပါသည်။</p>
+<div class="info-meta">🔄 ဈေးနှုန်းအသစ်ရရှိသည့်အခါ အလိုအလျောက် ပြန်လည်ရယူပါမည်။</div>
+</div>
+</div>
+<div class="card info-card knowledge-info-card">
+<div class="info-icon">🌱</div>
+<div class="info-content">
+<h3>တောင်သူဗဟုသုတ</h3>
+<p>စိုက်ပျိုးရေးနည်းပညာ၊ သီးနှံထိန်းသိမ်းနည်းနှင့် ဈေးကွက်သတင်းများကို ဤနေရာတွင် ဖော်ပြပေးပါမည်။</p>
+<div class="info-meta">📚 တောင်သူများအတွက် ဗဟုသုတများ</div>
+</div>
+</div>
+<div class="card">
+<h3>📢 နောက်ဆုံးကြေညာချက်များ</h3>
+<div id="homeNews" class="muted">ကြေညာချက် မရှိသေးပါ။</div>
+</div>
+</section>
+
+<section id="prices" class="page">
+<div class="card">
+<h3>🌾 သီးနှံဈေးနှုန်းများ</h3>
+<div style="display:flex;gap:8px;margin:12px 0">
+<button id="marketYangon" class="action" onclick="selectMarket('yangon')">ဘုရင့်နောင်</button>
+<select id="doaMarket" onchange="loadDoaPrices(this.value)" style="padding:10px;border-radius:8px;border:1px solid #ccc"><option value="">အခြားကုန်စည်ဒိုင် ရွေးရန်</option><option value="24">မြင်းခြံ</option><option value="10">မိတ္ထီလာ</option><option value="7">ပြင်ဦးလွင်</option><option value="27">အောင်ပန်း</option></select>
+</div>
+<div id="marketNotice" class="muted">MPBMSMA ဘုရင့်နောင်ဈေးနှုန်း</div>
+<input id="searchCrop" placeholder="သီးနှံအမည် ရှာရန်..." oninput="renderPrices()">
+<div id="cropFilters" style="display:flex;gap:7px;flex-wrap:wrap;margin:10px 0">
+<button class="action" onclick="filterCrop('all')">အားလုံး</button>
+<button class="action" onclick="filterCrop('ပဲ')">ပဲမျိုးစုံ</button>
+<button class="action" onclick="filterCrop('နှမ်း')">နှမ်း</button>
+<button class="action" onclick="filterCrop('ပြောင်း')">ပြောင်း</button>
+<button class="action" onclick="filterCrop('ကြက်သွန်')">ကြက်သွန်</button>
+<button class="action" onclick="filterCrop('ငရုတ်')">ငရုတ်</button>
+</div>
+<div id="priceUpdated" class="muted"></div><div id="priceList"></div>
+<p class="muted">ဈေးနှုန်းများကို အက်မင်မှ ထည့်သွင်းထားသော အချက်အလက်အတိုင်း ဖော်ပြပါမည်။</p>
+</div>
+</section>
+
+<section id="community" class="page">
+<div class="card">
+<h3>👨‍🌾 တောင်သူအသိုင်းအဝိုင်း</h3>
+<textarea id="postText" rows="4" placeholder="မိမိမေးမြန်းလိုသည်များ ရေးသားပါ..."></textarea>
+<button class="action" onclick="sendPost()">တင်မည်</button>
+</div>
+<div class="card">
+<h3>💬 အသိုင်းအဝိုင်းပို့စ်များ</h3>
+<div id="postList" class="muted">ပို့စ် မရှိသေးပါ။</div>
+</div>
+</section>
+
+<section id="knowledge" class="page">
+<div class="card">
+<h3>📚 စိုက်ပျိုးရေးဗဟုသုတ</h3>
+<div id="knowledgeList" class="muted">DOA မှ ဗဟုသုတ ရယူရန် ပြင်ဆင်နေပါသည်။</div>
+</div>
+</section>
+
+<section id="more" class="page">
+<div class="card">
+<h3>📢 သတင်းနှင့်ကြေညာချက်များ</h3>
+<div id="newsList" class="muted">သတင်း မရှိသေးပါ။</div>
+</div>
+<div class="card">
+<h3>ℹ️ ကျွန်ုပ်တို့အကြောင်း</h3>
+<p>Myanmar Agri Market သည် မြန်မာနိုင်ငံရှိ တောင်သူများနှင့် ကုန်သည်များအတွက် သီးနှံဈေးကွက်သတင်းအချက်အလက်များ မျှဝေပေးရန် ရည်ရွယ်ပါသည်။</p>
+</div>
+</section>
+
+
+<section id="ai" class="page">
+  <div class="card">
+    <h3>🤖 AI တောင်သူအကူ</h3>
+    <p class="muted">စိုက်ပျိုးနည်း၊ ပိုးမွှားရောဂါ၊ မြေဩဇာနှင့် စိုက်ပျိုးရေးဆိုင်ရာ မေးခွန်းများ မေးနိုင်ပါတယ်။</p>
+    <div id="aiMessages" style="height:350px;overflow-y:auto;background:#f5f7f1;padding:12px;border-radius:12px;margin:12px 0;">
+      <div style="background:white;padding:12px;border-radius:12px;white-space:pre-wrap;">မင်္ဂလာပါ။ 🌱 စိုက်ပျိုးရေးနဲ့ပတ်သက်ပြီး သိချင်တာ မေးနိုင်ပါတယ်။</div>
+    </div>
+    <textarea id="aiInput" rows="3" maxlength="2000" placeholder="မေးခွန်းရေးပါ..."></textarea>
+    <button id="aiSendButton" class="action" style="width:100%;margin-top:8px;" onclick="sendAiQuestion()">မေးခွန်းပို့မယ် ➤</button>
+    <p class="muted">AI အဖြေများကို ဒေသအလိုက် စိုက်ပျိုးရေးပညာရှင်နှင့် ထပ်မံအတည်ပြုပါ။</p>
+  </div>
+  <div class="card">
+    <h3>📚 ယခင် AI မေးခွန်းနှင့် အဖြေများ</h3>
+    <button class="action" onclick="loadAiHistory()">မှတ်တမ်းပြန်ဖတ်မယ် ↻</button>
+    <div id="aiHistoryList"><p>မှတ်တမ်းရယူနေသည်...</p></div>
+  </div>
+</section>
+
+<section id="history" class="page">
+<div class="card">
+<h3>📅 ဈေးနှုန်းမှတ်တမ်း</h3>
+<p class="muted">ဘုရင့်နောင်နှင့် DOA ကုန်စည်ဒိုင်များ၏ ဈေးနှုန်းမှတ်တမ်းများ</p>
+<div id="historyDates"></div>
+<div id="historyDetail"></div>
+</div>
+</section>
+</main>
+
+<nav>
+<button class="active" onclick="showPage('home',this)"><span>🏠</span>ပင်မ</button>
+<button onclick="showPage('prices',this)"><span>📊</span>ဈေးနှုန်း</button>
+<button onclick="showPage('knowledge',this)"><span>📚</span>ဗဟုသုတ</button>
+<button onclick="showPage('history',this)"><span>📅</span>မှတ်တမ်း</button>
+<button onclick="showPage('ai',this)"><span>🤖</span>AI</button>
+<button onclick="showPage('more',this)"><span>☰</span>အခြား</button>
+</nav>
+
+<script>
+let appData={crops:[],prices:[],news:[],knowledge:[],posts:[]};
+let automaticPrices=[];
+let doaPrices=[];
+let doaMarketName="";
+let doaDate="";
+let selectedMarket="yangon";
+let cropCategory="all";
+
+let automaticDate="";
+let historyRecords=[];
+let selectedHistoryDate="";
+let selectedHistoryIndex=0;
+
+
+
+async function loadDoaKnowledge(category=108){
+  const box=document.getElementById('knowledgeList');
+  box.innerHTML='<p class="muted">DOA မှ ဗဟုသုတ ရယူနေပါသည်...</p>';
+  try{
+    const r=await fetch('/api/knowledge/doa?category='+encodeURIComponent(category));
+    const j=await r.json();
+    if(!r.ok||!j.success)throw Error(j.message||'DOA မှ အချက်အလက် မရရှိပါ');
+    box.innerHTML='';
+    const select=document.createElement('select');
+    select.style.cssText='width:100%;padding:12px;margin:8px 0 14px;border-radius:8px;';
+    j.categories.forEach(c=>{
+      const option=document.createElement('option');
+      option.value=c.id;
+      option.textContent=c.name;
+      select.appendChild(option);
+    });
+    select.value=String(j.category.id);
+    select.onchange=()=>loadDoaKnowledge(select.value);
+    box.appendChild(select);
+    const source=document.createElement('p');
+    source.className='muted';
+    source.textContent='ရင်းမြစ်: '+j.source+' | '+j.items.length+' ခု';
+    box.appendChild(source);
+    if(!j.items.length){
+      const empty=document.createElement('p');
+      empty.textContent='ဤအမျိုးအစားတွင် စာအုပ် မရှိသေးပါ။';
+      box.appendChild(empty);
+    }
+    j.items.forEach(item=>{
+      const card=document.createElement('div');
+      card.className='price';
+      const link=document.createElement('a');
+      link.textContent='📖 '+item.title;
+      if(item.url.startsWith('https://www.doa.gov.mm/elibrary/')){
+        link.href=item.url;
+        link.target='_blank';
+        link.rel='noopener noreferrer';
+      }
+      link.style.cssText='font-weight:bold;color:inherit;text-decoration:none;';
+      card.appendChild(link);
+      box.appendChild(card);
+    });
+  }catch(e){
+    box.textContent='DOA ဗဟုသုတ ရယူ၍မရပါ။ Internet နှင့် Server ကို စစ်ဆေးပါ။';
+  }
+}
+
+function showPage(id,btn){
+document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+
+btn.classList.add('active');
+if(id==='history')loadHistory();
+if(id==='ai')loadAiHistory();
+if(id==='prices')loadHistory();
+if(id==='knowledge')loadDoaKnowledge(108);
+
+}
+
+function selectMarket(m){
+ selectedMarket=m;
+ document.getElementById('marketYangon').style.background=m==='yangon'?'#176b3a':'#718078';
+ document.getElementById('marketNotice').textContent='MPBMSMA မှ ရရှိသော ဘုရင့်နောင်ဈေးနှုန်းများ';
+ renderPrices();
+}
+async function loadDoaPrices(id){
+ if(!id){doaPrices=[];doaMarketName="";selectedMarket="yangon";renderPrices();return;}
+ selectedMarket="doa";
+ document.getElementById('marketYangon').style.background='#718078';
+ document.getElementById('marketNotice').textContent='DOA ကုန်စည်ဒိုင်ဈေးနှုန်းများ ရယူနေသည်...';
+ try{
+  const r=await fetch('/api/market/doa?seller='+encodeURIComponent(id));
+  const j=await r.json();
+  if(!j.success)throw Error();
+  doaPrices=j.prices||[];
+  doaMarketName=j.market||"";
+  doaDate=j.date||"";
+  renderPrices();
+ }catch(e){
+  doaPrices=[];
+  document.getElementById('priceList').textContent='ဈေးနှုန်းရယူမရပါ။ ထပ်မံကြိုးစားပါ။';
+ }
+}
+function filterCrop(category){
+ cropCategory=category;
+ renderPrices();
+}
+function renderPrices(){
+let q=(document.getElementById('searchCrop').value||'').toLowerCase();
+let items=[];
+if(selectedMarket==="yangon"){
+ items=[...automaticPrices.map(p=>({crop:p.name||p.crop||"",price:p.max_price||p.price||"",unit:p.unit||"",market:"ဘုရင့်နောင်"})),...appData.prices.map(p=>({...p,crop:p.crop||p.cropName||""}))];
+}else if(selectedMarket==="doa"){
+ items=doaPrices.map(p=>({
+  crop:p.name||"",
+  price:(p.min_price||"")+(p.max_price&&p.max_price!==p.min_price?" – "+p.max_price:""),
+  unit:p.unit||"",
+  quantity:p.quantity||"",
+  market:doaMarketName
+ }));
+}
+if(q && historyRecords.length){
+items=historyRecords.flatMap(r=>(r.prices||[]).map(p=>({
+crop:p.name||p.crop||"",
+price:(p.min_price||p.price||p.max_price||"")+(p.max_price&&p.min_price&&p.max_price!==p.min_price?" – "+p.max_price:""),
+unit:p.unit||"",
+quantity:p.quantity||"",
+market:r.market||r.source||"ဈေးကွက်",
+date:r.date||""
+})));
+}
+items=items.filter(p=>(p.crop||"").toLowerCase().includes(q)&&(cropCategory==="all"||(p.crop||"").includes(cropCategory)));
+document.getElementById('priceUpdated').textContent=selectedMarket==='yangon'?'ရင်းမြစ်: MPBMSMA ဘုရင့်နောင် | ရက်စွဲ: '+(automaticDate||'မရှိသေးပါ'):selectedMarket==='doa'?'ရင်းမြစ်: DOA | '+doaMarketName+' | မူရင်းစာမျက်နှာ ရက်စွဲ: '+(doaDate||'မရှိသေးပါ')+' | အပတ်စဉ်':'ဈေးကွက် ရွေးချယ်ပါ';
+document.getElementById('priceList').innerHTML=items.length?items.map(p=>`
+<div class="price"><div><b>${safe(p.crop)}</b><div class="muted">${safe(p.market||'')}${p.date?' | '+safe(p.date):''}${p.quantity?' | '+safe(p.quantity):''}</div></div><div style="text-align:right"><b>${safe(p.price)} ကျပ်</b><div class="muted">${safe(p.unit||'')}</div></div></div>`).join(''):'<p class="muted">ဈေးနှုန်း မရှိသေးပါ။</p>';
+}
+
+function safe(v){
+return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderAll(){
+renderPrices();
+document.getElementById('homePrices').innerHTML=automaticPrices.length?automaticPrices.slice(0,5).map(p=>`<div class="price"><b>${safe(p.name||p.crop||'')}</b><b>${safe(p.max_price||p.price||'')} ကျပ်</b></div>`).join('')+'<p class="muted">MPBMSMA | '+safe(automaticDate)+'</p>':appData.prices.length?appData.prices.slice(0,5).map(p=>`<div class="price"><b>${safe(p.crop)}</b><b>${safe(p.price)} ကျပ်</b></div>`).join(''):'ဈေးနှုန်း မရှိသေးပါ။';
+document.getElementById('homeNews').innerHTML=appData.news.length?appData.news.slice(0,3).map(n=>`<p><b>${safe(n.title)}</b><br>${safe(n.content)}</p>`).join(''):'ကြေညာချက် မရှိသေးပါ။';
+document.getElementById('newsList').innerHTML=appData.news.length?appData.news.map(n=>`<div class="price"><div><b>${safe(n.title)}</b><p>${safe(n.content)}</p></div></div>`).join(''):'သတင်း မရှိသေးပါ။';
+document.getElementById('knowledgeList').innerHTML=appData.knowledge.length?appData.knowledge.map(k=>`<div class="price"><div><b>${safe(k.title)}</b><p>${safe(k.content)}</p></div></div>`).join(''):'ဗဟုသုတ မရှိသေးပါ။';
+document.getElementById('postList').innerHTML=appData.posts.length?appData.posts.map(p=>`<div class="price">${safe(p.content||p.text)}</div>`).join(''):'ပို့စ် မရှိသေးပါ။';
+}
+
+async function loadAutomaticPrices(){try{let r=await fetch('/api/market/automatic');let j=await r.json();if(j.success){automaticPrices=j.prices||[];automaticDate=j.date||"";renderAll();
+let hp=document.getElementById('homePrices');
+if(hp)hp.innerHTML=automaticPrices.slice(0,5).map(p=>'<div class="price"><b>'+safe(p.name||p.crop||'')+'</b><b>'+(safe(p.max_price||p.price||''))+' ကျပ်</b></div>').join('')+'<p class="muted">MPBMSMA | '+automaticDate+'</p>';}}catch(e){console.log('Automatic prices unavailable');}}
+
+
+async function loadAiHistory(){
+ const box=document.getElementById('aiHistoryList');
+ if(!box)return;
+ box.textContent='AI မှတ်တမ်း ရယူနေသည်...';
+ try{
+  const r=await fetch('/api/ai/history');
+  const j=await r.json();
+  if(!r.ok||!j.success)throw Error();
+  const items=j.history||[];
+  box.innerHTML='';
+  if(!items.length){box.textContent='AI မှတ်တမ်း မရှိသေးပါ။';return;}
+  items.forEach(x=>{
+   const card=document.createElement('div');
+   card.className='price';
+   card.style.cssText='display:block;margin:10px 0;padding:12px;';
+   const date=document.createElement('small');
+   date.className='muted';
+   date.textContent=x.createdAt||'';
+   const q=document.createElement('p');
+   q.textContent='👨‍🌾 မေးခွန်း: '+(x.question||'');
+   const a=document.createElement('p');
+   a.style.whiteSpace='pre-wrap';
+   a.textContent='🤖 AI အဖြေ: '+(x.answer||'');
+   card.append(date,q,a);
+   box.appendChild(card);
+  });
+ }catch(e){box.textContent='AI မှတ်တမ်း ရယူမရပါ။ Server ကိုစစ်ဆေးပါ။';}
+}
+
+async function loadHistory(){
+try{
+const r=await fetch('/api/market/history');
+const j=await r.json();
+historyRecords=j.history||[];
+renderHistory();
+if(document.getElementById('prices')?.classList.contains('active'))renderPrices();
+}catch(e){
+document.getElementById('historyDetail').textContent='မှတ်တမ်းရယူမရပါ';
+}
+}
+function renderHistory(){
+const dates=document.getElementById('historyDates');
+const detail=document.getElementById('historyDetail');
+
+if(!historyRecords.length){
+ dates.innerHTML='';
+ detail.innerHTML='<p>မှတ်တမ်းမရှိသေးပါ</p>';
+ return;
+}
+
+if(selectedHistoryIndex<0 || selectedHistoryIndex>=historyRecords.length){
+ selectedHistoryIndex=0;
+}
+
+dates.innerHTML=historyRecords.map((x,i)=>
+ '<button class="action" style="margin:4px;'+
+ (i===selectedHistoryIndex?'background:#ffc107;color:#172b4d;':'')+
+ '" data-index="'+i+'" onclick="selectHistoryDate(this.dataset.index)">'+
+ safe(x.market||x.source||'ဈေးကွက်')+' | '+safe(x.date||'')+'</button>'
+).join('');
+
+const rec=historyRecords[selectedHistoryIndex];
+
+if(!rec){
+ detail.innerHTML='<p>မှတ်တမ်းမရှိပါ</p>';
+ return;
+}
+
+const prices=rec.prices||[];
+
+detail.innerHTML=
+ '<h3>'+safe(rec.market||rec.source||'ဈေးကွက်')+'</h3>'+
+ '<p class="muted">'+safe(rec.date||'')+' | '+
+ safe(rec.frequency||'နေ့စဉ်')+' | သီးနှံ '+prices.length+' မျိုး</p>'+
+ (prices.length?prices.map(x=>
+  '<div class="price"><div><b>'+safe(x.name||x.crop||'')+
+  '</b><div class="muted">'+safe(x.quantity||'')+
+  '</div></div><div style="text-align:right"><b>'+
+  safe(x.min_price||x.price||x.max_price||'')+
+  (x.max_price&&x.min_price&&x.max_price!==x.min_price?
+  ' – '+safe(x.max_price):'')+
+  ' ကျပ်</b><div class="muted">'+safe(x.unit||'')+
+  '</div></div></div>'
+ ).join(''):'<p>ဈေးနှုန်းမရှိပါ</p>');
+}
+
+function selectHistoryDate(index){
+selectedHistoryIndex=Number(index);
+renderHistory();
+}
+
+
+async function sendAiQuestion(){
+  const input = document.getElementById("aiInput");
+  const messages = document.getElementById("aiMessages");
+  const button = document.getElementById("aiSendButton");
+  const message = input.value.trim();
+
+  if (!message) return alert("မေးခွန်းရေးထည့်ပါ။");
+
+  function addMessage(text, isUser){
+    const bubble = document.createElement("div");
+    bubble.style.cssText = "padding:12px;margin:8px 0;border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;" +
+      (isUser ? "background:#e4f2e7;margin-left:25px;" : "background:white;margin-right:15px;");
+    bubble.textContent = text;
+    messages.appendChild(bubble);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  addMessage("👨‍🌾 " + message, true);
+  input.value = "";
+  button.disabled = true;
+  button.textContent = "AI ဖြေနေပါတယ်...";
+
+  try {
+    const r = await fetch("/api/ai/chat", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({message})
+    });
+    const data = await r.json();
+    if (!r.ok || !data.success) throw new Error(data.message || "AI အဖြေမရရှိပါ။");
+    addMessage("🤖 " + data.answer, false);
+  } catch(e) {
+    addMessage("⚠️ " + e.message, false);
+  } finally {
+    button.disabled = false;
+    button.textContent = "မေးခွန်းပို့မယ် ➤";
+  }
+}
+
+async function loadData(){
+try{
+let r=await fetch('/api/public');
+if(!r.ok)throw Error('load failed');
+appData={...appData,...await r.json()};
+renderAll();
+}catch(e){
+document.getElementById('homePrices').textContent='Server မှ အချက်အလက်ရယူ၍ မရသေးပါ။';
+}
+}
+
+async function sendPost(){
+let content=document.getElementById('postText').value.trim();
+if(!content)return alert('စာရေးထည့်ပါ။');
+try{
+let r=await fetch('/api/posts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:content})});
+if(!r.ok)throw Error();
+document.getElementById('postText').value='';
+alert('ပို့စ်တင်ပြီးပါပြီ။');
+loadData();
+}catch(e){alert('ပို့စ်တင်၍ မရပါ။ Server ကို စစ်ဆေးပါ။');}
+}
+loadData();
+loadAutomaticPrices();
+setInterval(loadAutomaticPrices,300000);
+</script>
+</body>
+</html>
+
