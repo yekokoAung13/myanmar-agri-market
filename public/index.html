@@ -4,6 +4,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#176b42">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
 <title>Myanmar Agri Market</title>
 <style>
 
@@ -592,6 +595,14 @@ loadData();
 loadData();
 loadAutomaticPrices();
 setInterval(loadAutomaticPrices,300000);
+</script>
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function() {
+    navigator.serviceWorker.register("/sw.js").catch(function(err) { console.error("App setup error:", err); });
+  });
+}
 </script>
 </body>
 </html>
