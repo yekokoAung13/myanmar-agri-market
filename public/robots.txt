@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://myanmar-agri-market-production-33a132c4.up.railway.app/sitemap.xml
