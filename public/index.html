@@ -184,6 +184,7 @@ nav button.active{color:#176b42;font-weight:800;background:#edf5ed}
 <p>နေ့စဉ် သီးနှံဈေးနှုန်းများနှင့် စိုက်ပျိုးရေးသတင်းများကို တစ်နေရာတည်းတွင် ကြည့်ရှုနိုင်ပါပြီ။</p>
 </div>
 <div class="home-shortcuts">
+<div class="home-shortcut" onclick="showPage('plant-check',this)"><span>🌱</span><b>အပင်ဓာတ်ပုံစစ်ဆေးရန်</b></div>
 <div class="home-shortcut" onclick="showPage('prices',document.querySelector('nav button:nth-child(2)'))"><span>🫘</span><b>ပဲမျိုးစုံဈေး</b></div>
 <div class="home-shortcut" onclick="showPage('prices',document.querySelector('nav button:nth-child(2)'))"><span>🌶️</span><b>နှမ်း၊ ငရုတ်၊ ပြောင်း</b></div>
 <div class="home-shortcut" onclick="showPage('prices',document.querySelector('nav button:nth-child(2)'))"><span>🧅</span><b>ကြက်သွန်ဈေး</b></div>
@@ -267,6 +268,19 @@ nav button.active{color:#176b42;font-weight:800;background:#edf5ed}
 </div>
 </section>
 
+
+
+<section id="plant-check" class="page">
+  <div class="card">
+    <h3>🌱 အပင်ဓာတ်ပုံ AI စစ်ဆေးခြင်း</h3>
+    <p class="muted">အပင်၏ အရွက်၊ ပင်စည် သို့မဟုတ် အသီးတွင် ဖြစ်နေသော လက္ခဏာကို ဓာတ်ပုံရိုက်ပြီး စစ်ဆေးနိုင်ပါတယ်။</p>
+    <input id="plantPhoto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" style="width:100%;margin:12px 0;">
+    <div id="plantPreview" style="text-align:center;"></div>
+    <button id="plantAnalyzeButton" class="action" style="width:100%;margin-top:12px;" onclick="analyzePlantPhoto()">🔍 အပင်ကို စစ်ဆေးမယ်</button>
+    <div id="plantResult" style="margin-top:16px;white-space:pre-wrap;line-height:1.9;"></div>
+    <p class="muted">AI ၏ ခန့်မှန်းချက်သာဖြစ်ပြီး ရောဂါအတည်ပြုချက် မဟုတ်ပါ။ ဆေးအသုံးမပြုမီ စိုက်ပျိုးရေးပညာရှင်နှင့် တိုင်ပင်ပါ။</p>
+  </div>
+</section>
 
 <section id="ai" class="page">
   <div class="card">
@@ -649,6 +663,105 @@ alert('ပို့စ်တင်ပြီးပါပြီ။');
 loadData();
 }catch(e){alert('ပို့စ်တင်၍ မရပါ။ Server ကို စစ်ဆေးပါ။');}
 }
+
+async function analyzePlantPhoto(){
+  const fileInput=document.getElementById('plantPhoto');
+  const preview=document.getElementById('plantPreview');
+  const result=document.getElementById('plantResult');
+  const button=document.getElementById('plantAnalyzeButton');
+  const file=fileInput?.files?.[0];
+
+  if(!file){
+    result.textContent='အရင်ဆုံး အပင်ဓာတ်ပုံ ရွေးပေးပါ။';
+    return;
+  }
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type)){
+    result.textContent='JPG, PNG သို့မဟုတ် WebP ပုံသာ ရွေးပေးပါ။';
+    return;
+  }
+
+  button.disabled=true;
+  button.textContent='ဓာတ်ပုံ စစ်ဆေးနေပါသည်...';
+  result.textContent='AI က အပင်ပုံကို လေ့လာနေပါတယ်။ ခဏစောင့်ပေးပါ။';
+
+  try{
+    const imageUrl=URL.createObjectURL(file);
+    const img=new Image();
+
+    await new Promise((resolve,reject)=>{
+      img.onload=resolve;
+      img.onerror=reject;
+      img.src=imageUrl;
+    });
+
+    if(preview){
+      const previewImg=document.createElement('img');
+      previewImg.src=imageUrl;
+      previewImg.style.cssText='max-width:100%;max-height:280px;border-radius:12px;';
+      preview.replaceChildren(previewImg);
+    }
+
+    let scale=Math.min(1,1280/Math.max(img.width,img.height));
+    const canvas=document.createElement('canvas');
+    canvas.width=Math.round(img.width*scale);
+    canvas.height=Math.round(img.height*scale);
+    const ctx=canvas.getContext('2d');
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+
+    let dataUrl=canvas.toDataURL('image/jpeg',0.78);
+    while(dataUrl.length>1650000 && scale>0.35){
+      scale*=0.8;
+      canvas.width=Math.round(img.width*scale);
+      canvas.height=Math.round(img.height*scale);
+      ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      dataUrl=canvas.toDataURL('image/jpeg',0.68);
+    }
+    URL.revokeObjectURL(imageUrl);
+
+    const imageBase64=dataUrl.split(',')[1];
+    if(!imageBase64 || imageBase64.length>1700000){
+      throw new Error('ဓာတ်ပုံအရွယ်အစား လျှော့၍မရပါ။ ပုံအသစ်ရိုက်ပေးပါ။');
+    }
+
+    const r=await fetch('/api/plant/analyze',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        imageBase64,
+        mimeType:'image/jpeg',
+        deviceId:getAiDeviceId()
+      })
+    });
+
+    const data=await r.json();
+    if(!r.ok || !data.success){
+      throw new Error(data.message || 'ဓာတ်ပုံစစ်ဆေး၍ မရပါ။');
+    }
+    result.textContent=data.answer || 'အဖြေမရရှိပါ။';
+  }catch(e){
+    result.textContent='⚠️ '+(e.message || 'စစ်ဆေးမှု မအောင်မြင်ပါ။');
+  }finally{
+    button.disabled=false;
+    button.textContent='🔍 အပင်ကို စစ်ဆေးမယ်';
+  }
+}
+
+document.getElementById('plantPhoto')?.addEventListener('change',function(){
+  const preview=document.getElementById('plantPreview');
+  const result=document.getElementById('plantResult');
+  if(preview)preview.replaceChildren();
+  if(result)result.textContent='';
+  const file=this.files?.[0];
+  if(!file || !preview)return;
+  const url=URL.createObjectURL(file);
+  const img=document.createElement('img');
+  img.src=url;
+  img.style.cssText='max-width:100%;max-height:280px;border-radius:12px;';
+  img.onload=()=>URL.revokeObjectURL(url);
+  preview.replaceChildren(img);
+});
+
+
 loadData();
 loadAutomaticPrices();
 setInterval(loadAutomaticPrices,300000);

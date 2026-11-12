@@ -672,6 +672,68 @@ app.get("/api/ai/history", (req, res) => {
   res.json({success:true, history});
 });
 
+
+// GEMINI PLANT PHOTO ANALYSIS
+app.post("/api/plant/analyze", async (req, res) => {
+  try {
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(503).json({
+        success: false,
+        message: "Gemini API Key မသတ်မှတ်ရသေးပါ။"
+      });
+    }
+
+    const imageBase64 = String(req.body.imageBase64 || "");
+    const mimeType = String(req.body.mimeType || "").toLowerCase();
+    const deviceId = String(req.body.deviceId || "").trim();
+
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(deviceId)) {
+      return res.status(400).json({success:false,message:"အသုံးပြုသူ ID မမှန်ပါ။"});
+    }
+
+    if (!["image/jpeg", "image/png", "image/webp"].includes(mimeType)) {
+      return res.status(400).json({success:false,message:"JPG, PNG သို့မဟုတ် WebP ပုံသာ တင်နိုင်ပါသည်။"});
+    }
+
+    if (!imageBase64 || imageBase64.length > 1700000 || !/^[A-Za-z0-9+/]+={0,2}$/.test(imageBase64)) {
+      return res.status(400).json({success:false,message:"ဓာတ်ပုံမမှန်ပါ သို့မဟုတ် အရွယ်အစားကြီးနေပါသည်။"});
+    }
+
+    const { GoogleGenAI } = require("@google/genai");
+    const ai = new GoogleGenAI({apiKey:process.env.GEMINI_API_KEY});
+
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash",
+      contents: [{
+        role: "user",
+        parts: [
+          {
+            text: "သင်သည် မြန်မာတောင်သူများကို ကူညီပေးသော အပင်ရောဂါနှင့် ပိုးမွှားစစ်ဆေးရေး AI ဖြစ်သည်။ ဤဓာတ်ပုံကို မြန်မာဘာသာဖြင့် စစ်ဆေးပြီး (၁) မြင်ရသော အပင်အမျိုးအစား (၂) မြင်ရသော လက္ခဏာများ (၃) ဖြစ်နိုင်သော ရောဂါ သို့မဟုတ် ပိုးမွှားနှင့် ယုံကြည်မှုအဆင့် (၄) ဖြစ်နိုင်သော အကြောင်းရင်း (၅) လက်တွေ့ကာကွယ်ကုသနည်း (၆) ထပ်မံစစ်ဆေးရန် လိုအပ်သော အချက်များကို ခွဲခြားရှင်းပြပါ။ ဓာတ်ပုံတစ်ပုံတည်းဖြင့် အတည်မပြုနိုင်ပါက မသေချာကြောင်း ရှင်းပြပါ။ ဆေးအမည်၊ ဆေးနှုန်းနှင့် ဆေးပမာဏကို မခန့်မှန်းပါနှင့်။ ဆေးအသုံးပြုရာတွင် တရားဝင် Label နှင့် ဒေသခံ စိုက်ပျိုးရေးပညာရှင်၏ အကြံပြုချက်ကို လိုက်နာရန် သတိပေးပါ။"
+          },
+          {
+            inlineData: {
+              mimeType,
+              data: imageBase64
+            }
+          }
+        ]
+      }]
+    });
+
+    res.json({
+      success: true,
+      answer: response.text || "ဓာတ်ပုံမှ အဖြေမရရှိပါ။"
+    });
+
+  } catch (e) {
+    console.error("[PLANT AI]", e.message);
+    res.status(502).json({
+      success: false,
+      message: "အပင်ဓာတ်ပုံ စစ်ဆေး၍မရပါ။ ခဏနေ ပြန်ကြိုးစားပါ။"
+    });
+  }
+});
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
