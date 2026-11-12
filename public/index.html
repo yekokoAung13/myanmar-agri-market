@@ -424,6 +424,28 @@ if(selectedMarket==="yangon"){
   market:doaMarketName
  }));
 }
+
+if(q && historyRecords.length){
+ const selectedDoaId=selectedMarket==="doa"?String(document.getElementById('doaMarket')?.value||""):"";
+ const latestDoaBySeller=new Map();
+ historyRecords.filter(r=>r.source==="DOA").forEach(r=>{
+  const id=String(r.seller_id||"");
+  if(!id || id===selectedDoaId)return;
+  const old=latestDoaBySeller.get(id);
+  if(!old || String(r.date||"")>String(old.date||""))latestDoaBySeller.set(id,r);
+ });
+ latestDoaBySeller.forEach(r=>{
+  items.push(...(r.prices||[]).map(p=>({
+   crop:p.name||p.crop||"",
+   price:(p.min_price||p.price||p.max_price||"")+(p.max_price&&p.min_price&&p.max_price!==p.min_price?" – "+p.max_price:""),
+   unit:p.unit||"",
+   quantity:p.quantity||"",
+   market:r.market||"DOA ကုန်စည်ဒိုင်",
+   date:r.date||""
+  })));
+ });
+}
+
 if(!items.length && historyRecords.length){
 const marketId=document.getElementById('doaMarket')?.value||"";
 const savedRecords=historyRecords.filter(r=>
