@@ -688,6 +688,7 @@ async function AUTO_MARKET_REFRESH(){
 }
 
 app.listen(PORT, "0.0.0.0", () => {
+  console.log("GROQ_API_KEY present:", Boolean(process.env.GROQ_API_KEY));
   console.log("Myanmar Agri Market Server");
   console.log("Server running on port " + PORT);
   setTimeout(AUTO_MARKET_REFRESH,5000);
