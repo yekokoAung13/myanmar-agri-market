@@ -497,7 +497,7 @@ async function loadHistory(){
 try{
 const r=await fetch('/api/market/history');
 const j=await r.json();
-historyRecords=j.history||[];
+historyRecords=(j.history||[]).filter(x=>!(x.source==="MPBMSMA Bayintnaung" && x.date==="2026-11-12"));
 renderHistory();
 if(document.getElementById('prices')?.classList.contains('active'))renderPrices();
 }catch(e){
