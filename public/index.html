@@ -461,7 +461,7 @@ document.getElementById('postList').innerHTML=appData.posts.length?appData.posts
 
 async function loadAutomaticPrices(){try{let r=await fetch('/api/market/automatic');let j=await r.json();if(j.success){automaticPrices=j.prices||[];automaticDate=j.date||"";renderAll();
 let hp=document.getElementById('homePrices');
-if(hp)hp.innerHTML=automaticPrices.slice(0,5).map(p=>'<div class="price"><b>'+safe(p.name||p.crop||'')+'</b><b>'+(safe(p.max_price||p.price||''))+' ကျပ်</b></div>').join('')+'<p class="muted">MPBMSMA | '+automaticDate+'</p>';}}catch(e){console.log('Automatic prices unavailable');}}
+if(hp)hp.innerHTML=automaticPrices.slice(0,5).map(p=>'<div class="price"><b>'+safe(p.name||p.crop||'')+'</b><b>'+(safe(p.max_price||p.price||''))+' ကျပ်</b></div>').join('')+'<p class="muted">MPBMSMA | '+automaticDate+'</p>';}}catch(e){try{let f=await fetch('/yangon-fallback.json');let d=await f.json();automaticPrices=d.prices||[];automaticDate=d.date||'';renderAll();renderPrices();console.log('Saved Yangon prices loaded');}catch(x){console.log('Automatic and fallback prices unavailable');}}}
 
 
 async function loadAiHistory(){
