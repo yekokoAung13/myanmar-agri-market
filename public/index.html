@@ -402,7 +402,8 @@ async function loadDoaPrices(id){
   renderPrices();
  }catch(e){
   doaPrices=[];
-  document.getElementById('priceList').textContent='ဈေးနှုန်းရယူမရပါ။ ထပ်မံကြိုးစားပါ။';
+  document.getElementById('marketNotice').textContent='DOA မှ ဈေးအသစ်ရယူမရပါ။ သိမ်းထားသော ဈေးနှုန်းမှတ်တမ်းကို ပြသနေသည်။';
+  renderPrices();
  }
 }
 function filterCrop(category){
@@ -423,8 +424,14 @@ if(selectedMarket==="yangon"){
   market:doaMarketName
  }));
 }
-if(q && historyRecords.length){
-items=historyRecords.flatMap(r=>(r.prices||[]).map(p=>({
+if(!items.length && historyRecords.length){
+const marketId=document.getElementById('doaMarket')?.value||"";
+const savedRecords=historyRecords.filter(r=>
+ selectedMarket==="yangon"
+ ? String(r.source||"").toUpperCase().includes("MPBMSMA")
+ : r.source==="DOA" && String(r.seller_id||"")===String(marketId)
+);
+items=savedRecords.flatMap(r=>(r.prices||[]).map(p=>({
 crop:p.name||p.crop||"",
 price:(p.min_price||p.price||p.max_price||"")+(p.max_price&&p.min_price&&p.max_price!==p.min_price?" – "+p.max_price:""),
 unit:p.unit||"",
