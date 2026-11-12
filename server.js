@@ -567,6 +567,10 @@ app.get("/api/market/doa",async(req,res)=>{
 app.post("/api/ai/chat", async (req, res) => {
   try {
     const message = String(req.body.message || "").trim();
+    const deviceId = String(req.body.deviceId || "").trim();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(deviceId)) {
+      return res.status(400).json({success:false,message:"အသုံးပြုသူ ID မမှန်ပါ။"});
+    }
 
     if (!message || message.length > 2000) {
       return res.status(400).json({
@@ -602,6 +606,7 @@ app.post("/api/ai/chat", async (req, res) => {
     const data = readData();
     data.aiHistory.unshift({
       id: newId(),
+      deviceId,
       question: message,
       answer,
       createdAt: new Date().toLocaleString("my-MM", {timeZone:"Asia/Yangon"})
@@ -658,8 +663,13 @@ app.get("/api/knowledge/doa", async (req,res) => {
 
 // AI_HISTORY_SAVE
 app.get("/api/ai/history", (req, res) => {
+  const deviceId = String(req.get("x-device-id") || "").trim();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(deviceId)) {
+    return res.status(400).json({success:false,message:"အသုံးပြုသူ ID မမှန်ပါ။"});
+  }
   const data = readData();
-  res.json({success:true, history:data.aiHistory || []});
+  const history = (data.aiHistory || []).filter(x => x.deviceId === deviceId);
+  res.json({success:true, history});
 });
 
 app.use((req, res) => {

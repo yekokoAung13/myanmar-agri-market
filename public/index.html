@@ -486,12 +486,22 @@ let hp=document.getElementById('homePrices');
 if(hp)hp.innerHTML=automaticPrices.slice(0,5).map(p=>'<div class="price"><b>'+safe(p.name||p.crop||'')+'</b><b>'+(safe(p.max_price||p.price||''))+' ကျပ်</b></div>').join('')+'<p class="muted">MPBMSMA | '+automaticDate+'</p>';}}catch(e){try{let f=await fetch('/yangon-fallback.json');let d=await f.json();automaticPrices=d.prices||[];automaticDate=d.date||'';renderAll();renderPrices();console.log('Saved Yangon prices loaded');}catch(x){console.log('Automatic and fallback prices unavailable');}}}
 
 
+function getAiDeviceId(){
+ let id=localStorage.getItem('myanmarAgriAiDeviceId');
+ if(!id){
+  if(!crypto.randomUUID)throw new Error('ဒီ Browser တွင် လုံခြုံသော ID ထုတ်မရပါ။');
+  id=crypto.randomUUID();
+  localStorage.setItem('myanmarAgriAiDeviceId',id);
+ }
+ return id;
+}
+
 async function loadAiHistory(){
  const box=document.getElementById('aiHistoryList');
  if(!box)return;
  box.textContent='AI မှတ်တမ်း ရယူနေသည်...';
  try{
-  const r=await fetch('/api/ai/history');
+  const r=await fetch('/api/ai/history',{headers:{'x-device-id':getAiDeviceId()}});
   const j=await r.json();
   if(!r.ok||!j.success)throw Error();
   const items=j.history||[];
@@ -604,7 +614,7 @@ async function sendAiQuestion(){
     const r = await fetch("/api/ai/chat", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({message})
+      body: JSON.stringify({message,deviceId:getAiDeviceId()})
     });
     const data = await r.json();
     if (!r.ok || !data.success) throw new Error(data.message || "AI အဖြေမရရှိပါ။");
